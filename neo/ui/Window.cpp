@@ -2576,6 +2576,18 @@ bool idWindow::Parse( idTokenParser* src, bool rebuild )
 	src->ExpectAnyToken( &token );
 	
 	bool ret = true;
+        
+        // EL begin
+        // ID Tools !!! Meanwhile don't include GUI Editor.
+        /*
+#ifdef ID_ALLOW_TOOLS
+        if ( com_editors & EDITOR_GUI )
+        {
+                new rvGEWindowWrapper ( this, rvGEWindowWrapper::WT_NORMAL );
+        }
+#endif
+*/
+        // EL end
 	
 	while( token != "}" )
 	{
@@ -2767,6 +2779,28 @@ bool idWindow::Parse( idTokenParser* src, bool rebuild )
 				ret = false;
 				break;
 			}
+			
+			// EL begin
+			// If we are in the gui editor then add the internal var to the
+                        // the wrapper
+#ifdef ID_ALLOW_TOOLS
+/*
+			if ( com_editors & EDITOR_GUI )
+			{
+			        idStr str;
+                                idStr out;
+                                
+                                // Grab the string from the last marker
+                                src->GetStringFromMarker ( str, false );
+                                // Parse it one more time to knock unwanted tabs out
+                                idLexer src2( str, str.Length(), "", src->GetFlags() );
+                                src2.ParseBracedSectionExact ( out, 1);
+                                // Save the script
+                                rvGEWindowWrapper::GetWrapper ( this )->GetScriptDict().Set ( va("onEvent %s", token.c_str()), out );
+                        }
+                        */
+#endif
+			// EL end
 			
 			namedEvents.Append( ev );
 		}

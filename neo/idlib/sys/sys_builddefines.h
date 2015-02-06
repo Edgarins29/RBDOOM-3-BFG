@@ -32,4 +32,7 @@ If you have questions concerning this license or the applicable additional terms
 	Preprocessor settings for compiling different versions.
 
 ===============================================================================
+
+
 */
+#define ID_ALLOW_TOOLS

@@ -36,11 +36,34 @@ If you have questions concerning this license or the applicable additional terms
 
 ==============================================================
 */
+// EL begin !!! Already defined
+/*
+typedef enum {
+        EDITOR_NONE = 0,
+        EDITOR_RADIANT = BIT(1),
+        EDITOR_GUI = BIT(2),
+        EDITOR_DEBUGGER = BIT(3),
+        EDITOR_SCRIPT = BIT(4),
+        EDITOR_LIGHT = BIT(5),
+        EDITOR_SOUND = BIT(6),
+        EDITOR_DECL = BIT(7),
+        EDITOR_AF = BIT(8),
+        EDITOR_PARTICLE = BIT(9),
+        EDITOR_PDA = BIT(10),
+        EDITOR_AAS = BIT(11),
+        EDITOR_MATERIAL = BIT(12)
+} toolFlag_t;
+*/
+// EL end
 
 extern idCVar com_engineHz;
 extern float com_engineHz_latched;
 extern int64 com_engineHz_numerator;
 extern int64 com_engineHz_denominator;
+
+extern int	com_editors; // current active editor(s)
+extern bool	com_editorActive; // true if an editor has focus
+
 
 // Returns the msec the frame starts on
 ID_INLINE int FRAME_TO_MSEC( int64 frame )
@@ -139,6 +162,12 @@ extern idCVar		com_showFPS;
 extern idCVar		com_showMemoryUsage;
 extern idCVar		com_updateLoadSize;
 extern idCVar		com_productionMode;
+
+// EL begin
+// Adding back editors.
+extern int              com_editors;            // current active editor(s)
+extern bool             com_editorActive;       // true if an editor has focus
+// EL end
 
 struct MemInfo_t
 {

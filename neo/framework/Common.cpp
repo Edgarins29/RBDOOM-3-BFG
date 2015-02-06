@@ -100,6 +100,9 @@ float com_engineHz_latched = 60.0f; // Latched version of cvar, updated between 
 int64 com_engineHz_numerator = 100LL * 1000LL;
 int64 com_engineHz_denominator = 100LL * 60LL;
 
+int	com_editors; // currently opened editor(s)
+bool	com_editorActive; // true if an editor has focus
+
 // RB begin
 #if defined(_WIN32)
 HWND com_hwndMsg = NULL;
@@ -217,6 +220,14 @@ idCommonLocal::Quit
 */
 void idCommonLocal::Quit()
 {
+        // EL begin
+        #ifdef ID_ALLOW_TOOLS_NYI
+        if ( com_editors & EDITOR_RADIANT ) {
+        RadiantInit();
+        return;
+        }
+        #endif
+        // EL end
 
 	// don't try to shutdown if we are in a recursive error
 	if( !com_errorEntered )
@@ -370,6 +381,37 @@ void idCommonLocal::AddStartupCommands()
 	}
 }
 
+// EL begin
+/*
+=================
+idCommonLocal::InitTool
+=================
+*/
+/*
+void idCommonLocal::InitTool( const toolFlag_t tool, const idDict *dict )
+{
+#ifdef ID_ALLOW_TOOLS
+        if ( tool & EDITOR_SOUND ) 
+        {
+                SoundEditorInit( dict );
+        } 
+        else if ( tool & EDITOR_LIGHT )    
+        {
+                LightEditorInit( dict );
+        } else if ( tool & EDITOR_PARTICLE ) 
+        {
+                ParticleEditorInit( dict );
+        } else if ( tool & EDITOR_AF ) 
+        {
+                AFEditorInit( dict );
+        }
+    
+#endif
+
+}
+*/
+// EL end
+
 /*
 ==================
 idCommonLocal::WriteConfigToFile
@@ -474,6 +516,53 @@ int	idCommonLocal::KeyState( int key )
 	return usercmdGen->KeyState( key );
 }
 
+
+#ifdef ID_ALLOW_TOOLS_NYI
+/*
+==================
+Com_Editor_f
+
+  we can start the editor dynamically, but we won't ever get back
+==================
+*/
+static void Com_Editor_f( const idCmdArgs &args ) {
+	RadiantInit();
+}
+
+/*
+=============
+Com_ScriptDebugger_f
+=============
+*/
+static void Com_ScriptDebugger_f( const idCmdArgs &args ) {
+	// Make sure it wasnt on the command line
+	if ( !( com_editors & EDITOR_DEBUGGER ) ) {
+		common->Printf( "Script debugger is currently disabled\n" );
+		// DebuggerClientLaunch();
+	}
+}
+
+/*
+=============
+Com_EditGUIs_f
+=============
+*/
+static void Com_EditGUIs_f( const idCmdArgs &args ) {
+	GUIEditorInit();
+}
+
+/*
+=============
+Com_MaterialEditor_f
+=============
+*/
+static void Com_MaterialEditor_f( const idCmdArgs &args ) {
+	// Turn off sounds
+	soundSystem->SetMute( true );
+	MaterialEditorInit();
+}
+#endif // ID_ALLOW_TOOLS
+
 /*
 ============
 idCmdSystemLocal::PrintMemInfo_f
@@ -515,6 +604,87 @@ CONSOLE_COMMAND( printMemInfo, "prints memory debugging data", NULL )
 			   
 	fileSystem->CloseFile( f );
 }
+
+
+// EL begin
+#ifdef ID_ALLOW_TOOLS_NYI
+/*
+==================
+Com_EditLights_f
+==================
+*/
+static void Com_EditLights_f( const idCmdArgs &args ) {
+	LightEditorInit( NULL );
+	cvarSystem->SetCVarInteger( "g_editEntityMode", 1 );
+}
+
+/*
+==================
+Com_EditSounds_f
+==================
+*/
+static void Com_EditSounds_f( const idCmdArgs &args ) {
+	SoundEditorInit( NULL );
+	cvarSystem->SetCVarInteger( "g_editEntityMode", 2 );
+}
+
+/*
+==================
+Com_EditDecls_f
+==================
+*/
+static void Com_EditDecls_f( const idCmdArgs &args ) {
+	DeclBrowserInit( NULL );
+}
+
+/*
+==================
+Com_EditAFs_f
+==================
+*/
+static void Com_EditAFs_f( const idCmdArgs &args ) {
+	AFEditorInit( NULL );
+}
+
+/*
+==================
+Com_EditParticles_f
+==================
+*/
+static void Com_EditParticles_f( const idCmdArgs &args ) {
+	ParticleEditorInit( NULL );
+}
+
+/*
+==================
+Com_EditScripts_f
+==================
+*/
+static void Com_EditScripts_f( const idCmdArgs &args ) {
+	ScriptEditorInit( NULL );
+}
+
+/*
+==================
+Com_EditPDAs_f
+==================
+*/
+static void Com_EditPDAs_f( const idCmdArgs &args ) {
+	PDAEditorInit( NULL );
+}
+#endif // ID_ALLOW_TOOLS
+
+#ifdef ID_ALLOW_TOOLS
+/*
+==================
+Com_EditPDAs_f
+==================
+*/
+static void Com_EditPDAs_f( const idCmdArgs &args ) {
+	PDAEditorInit( NULL );
+}
+#endif
+// EL end
 
 /*
 ==================
@@ -1691,6 +1861,25 @@ void idCommonLocal::InitCommands()
 	cmdSystem->AddCommand( "runAAS", RunAAS_f, CMD_FL_TOOL, "compiles an AAS file for a map", idCmdSystem::ArgCompletion_MapName );
 	cmdSystem->AddCommand( "runAASDir", RunAASDir_f, CMD_FL_TOOL, "compiles AAS files for all maps in a folder", idCmdSystem::ArgCompletion_MapName );
 	cmdSystem->AddCommand( "runReach", RunReach_f, CMD_FL_TOOL, "calculates reachability for an AAS file", idCmdSystem::ArgCompletion_MapName );
+
+        // EL begin
+        #ifdef ID_ALLOW_TOOLS
+        // editors
+        //cmdSystem->AddCommand( "editor", Com_Editor_f, CMD_FL_TOOL, "launches the level editor Radiant" );
+        //cmdSystem->AddCommand( "editLights", Com_EditLights_f, CMD_FL_TOOL, "launches the in-game Light Editor" );
+        //cmdSystem->AddCommand( "editSounds", Com_EditSounds_f, CMD_FL_TOOL, "launches the in-game Sound Editor" );
+        //cmdSystem->AddCommand( "editDecls", Com_EditDecls_f, CMD_FL_TOOL, "launches the in-game Declaration Editor" );
+        //cmdSystem->AddCommand( "editAFs", Com_EditAFs_f, CMD_FL_TOOL, "launches the in-game Articulated Figure Editor" );
+        //cmdSystem->AddCommand( "editParticles", Com_EditParticles_f, CMD_FL_TOOL, "launches the in-game Particle Editor" );
+        //cmdSystem->AddCommand( "editScripts", Com_EditScripts_f, CMD_FL_TOOL, "launches the in-game Script Editor" );
+        //cmdSystem->AddCommand( "editGUIs", Com_EditGUIs_f, CMD_FL_TOOL, "launches the GUI Editor" );
+        cmdSystem->AddCommand( "editPDAs", Com_EditPDAs_f, CMD_FL_TOOL, "launches the in-game PDA Editor" );
+        //cmdSystem->AddCommand( "debugger", Com_ScriptDebugger_f, CMD_FL_TOOL, "launches the Script Debugger" );
+        
+        //BSM Nerve: Add support for the material editor
+        //cmdSystem->AddCommand( "materialEditor", Com_MaterialEditor_f, CMD_FL_TOOL, "launches the Material Editor" );
+        #endif
+        // EL end
 }
 
 /*

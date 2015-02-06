@@ -541,6 +541,25 @@ int main( int argc, const char** argv )
 	
 	while( 1 )
 	{
+#ifdef ID_ALLOW_TOOLS_NYI
+		if ( com_editors ) 
+		{
+			if ( com_editors & EDITOR_GUI )
+			{
+				// GUI editor
+				GUIEditorRun();
+			}
+			else if ( com_editors & EDITOR_RADIANT )
+			{
+				// Level Editor
+				RadiantRun();
+			}
+			else if ( com_editors & EDITOR_MATERIAL )
+			{
+				// BSM Nerve: Add support for the material editor
+				MaterialEditorRun();
+			}
+#endif
 		common->Frame();
 	}
 }

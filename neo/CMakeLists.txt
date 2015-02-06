@@ -6,6 +6,9 @@ project(RBDoom3BFG)
 option(USE_MFC_TOOLS
 		"Compile the built-in MFC based tools" OFF)
 		
+option(USE_QT_TOOLS
+                "Compile the built-in MFC based tools" OFF)	#EL
+
 option(MONOLITH
 		"Embed game logic into main executable" ON)
 		
@@ -38,6 +41,7 @@ option(USE_SYSTEM_LIBGLEW
 
 if(UNIX)
 	set(OPENAL TRUE)
+	set(USE_QT_TOOLS TRUE)		# EL
 endif()
 		
 if(MSVC)
@@ -722,6 +726,7 @@ file(GLOB COMPILER_ROQVQ_INCLUDES tools/compilers/roqvq/*.h)
 file(GLOB COMPILER_ROQVQ_SOURCES tools/compilers/roqvq/*.cpp)
 
 set(TOOLS_INCLUDES tools/edit_public.h)
+set(TOOLS_SOURCES tools/edit_stub.cpp)
 
 file(GLOB TOOLS_COMAFX_INCLUDES tools/comafx/*.h)
 file(GLOB TOOLS_COMAFX_SOURCES tools/comafx/*.cpp)
@@ -805,8 +810,12 @@ file(GLOB EDITOR_MATERIALEDITOR_SOURCES tools/materialeditor/*.cpp)
 file(GLOB EDITOR_PARTICLE_INCLUDES tools/particle/*.h)
 file(GLOB EDITOR_PARTICLE_SOURCES tools/particle/*.cpp)
 
-file(GLOB EDITOR_PDA_INCLUDES tools/pda/*.h)
-file(GLOB EDITOR_PDA_SOURCES tools/pda/*.cpp)
+#file(GLOB EDITOR_PDA_INCLUDES tools/pda/*.h)
+#file(GLOB EDITOR_PDA_SOURCES tools/pda/*.cpp)
+
+file(GLOB EDITOR_PDA_INCLUDES tools/pda/q*.h)
+file(GLOB EDITOR_PDA_UIINCLUDES tools/pda/q*.ui)
+file(GLOB EDITOR_PDA_SOURCES tools/pda/q*.cpp)
 
 file(GLOB EDITOR_RADIANT_INCLUDES tools/radiant/*.h)
 file(GLOB EDITOR_RADIANT_SOURCES tools/radiant/*.cpp)
@@ -920,6 +929,14 @@ set(WIN32_RESOURCES
 #	list(APPEND WIN32_RESOURCES sys/win32/rc/doom_nomfc.rc)
 #endif()
 
+#if(USE_QT_TOOLS)
+#set(QT_PDA_RESOURCES
+#        tools/pda/qrc
+#)
+#        list(APPEND QT_RESOURCES sys/common/rc/doom.qrc
+#else()
+
+#endif()
 
 file(GLOB POSIX_INCLUDES sys/posix/*.h)
 file(GLOB POSIX_SOURCES sys/posix/*.cpp)
@@ -1104,6 +1121,7 @@ source_group("tools\\particle" FILES ${EDITOR_PARTICLE_INCLUDES})
 source_group("tools\\particle" FILES ${EDITOR_PARTICLE_SOURCES})
 
 source_group("tools\\pda" FILES ${EDITOR_PDA_INCLUDES})
+source_group("tools\\pda" FILES ${EDITOR_PDA_UIINCLUDES})
 source_group("tools\\pda" FILES ${EDITOR_PDA_SOURCES})
 
 source_group("tools\\radiant" FILES ${EDITOR_RADIANT_INCLUDES})
@@ -1144,6 +1162,9 @@ set(RBDOOM3_INCLUDES
 			${DOOMCLASSIC_INCLUDES}
 			${TIMIDITY_INCLUDES}
 			
+			${TOOL_INCLUDES}
+
+			
 			${COMPILER_INCLUDES}
 			${COMPILER_AAS_INCLUDES} ${COMPILER_AAS_SOURCES}
 			${COMPILER_DMAP_INCLUDES} ${COMPILER_DMAP_SOURCES}
@@ -1178,6 +1199,8 @@ set(RBDOOM3_SOURCES
 			${COMMON_SOURCES}
 			${DOOMCLASSIC_SOURCES}
 			${TIMIDITY_SOURCES}
+			
+			${TOOL_SOURCES}
 			
 			${COMPILER_AAS_SOURCES}
 			${COMPILER_DMAP_SOURCES}
@@ -1417,6 +1440,9 @@ if(MSVC)
 	
 else()
 
+        
+
+
 	list(APPEND RBDOOM3_SOURCES
 		${SYS_INCLUDES} ${SYS_SOURCES})
 	
@@ -1424,6 +1450,42 @@ else()
 	include_directories(${OPENGL_INCLUDE_DIRS})
 
 	if(UNIX)
+	
+	if(USE_QT_TOOLS)
+		
+		#include_directories(libs/atlmfc/include)
+		#if(CMAKE_CL_64)
+		#	link_directories(${CMAKE_CURRENT_SOURCE_DIR}/libs/atlmfc/lib/amd64)
+		#else()
+		#	link_directories(${CMAKE_CURRENT_SOURCE_DIR}/libs/atlmfc/lib)
+		#endif()
+		
+		find_package(Qt4 REQUIRED)
+		INCLUDE(${QT_USE_FILE})
+		QT4_WRAP_UI(UISrcs ${EDITOR_PDA_UIINCLUDES})
+		QT4_WRAP_CPP(MOCSrcs ${EDITOR_PDA_INCLUDES})
+		include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
+		add_definitions(-DUSE_QT_TOOLS)
+		
+		list(APPEND RBDOOM3_SOURCES
+			${TOOLS_INCLUDES} ${TOOLS_SOURCES}
+			#${TOOLS_COMAFX_INCLUDES} ${TOOLS_COMAFX_SOURCES}
+			#${TOOLS_COMMON_INCLUDES} ${TOOLS_COMMON_SOURCES}
+			#${TOOLS_COMMON_PROPTREE_INCLUDES} ${TOOLS_COMMON_PROPTREE_SOURCES}
+			
+			#${EDITOR_AF_INCLUDES} ${EDITOR_AF_SOURCES}
+			#${EDITOR_DEBUGGER_INCLUDES} ${EDITOR_DEBUGGER_SOURCES}
+			#${EDITOR_DECL_INCLUDES} ${EDITOR_DECL_SOURCES}
+			#${EDITOR_GUIED_INCLUDES} ${EDITOR_GUIED_SOURCES}
+			#${EDITOR_MATERIALEDITOR_INCLUDES} ${EDITOR_MATERIALEDITOR_SOURCES}
+			#${EDITOR_PARTICLE_INCLUDES} ${EDITOR_PARTICLE_SOURCES}
+			${EDITOR_PDA_INCLUDES} ${EDITOR_PDA_SOURCES}
+			#${EDITOR_RADIANT_INCLUDES} ${EDITOR_RADIANT_SOURCES}
+			#${EDITOR_SCRIPT_INCLUDES} ${EDITOR_SCRIPT_SOURCES}
+			#${EDITOR_SOUND_INCLUDES} ${EDITOR_SOUND_SOURCES}
+			)
+        endif()
+	
 		if(FFMPEG)
 			find_package(FFMPEG REQUIRED)
 			add_definitions(-DUSE_FFMPEG)
@@ -1538,7 +1600,7 @@ else()
 	# make sure this is run after creating idlib
 	add_dependencies(precomp_header_rbdoom3bfg idlib)
 	
-	add_executable(RBDoom3BFG WIN32 ${RBDOOM3_SOURCES})
+	add_executable(RBDoom3BFG WIN32 ${RBDOOM3_SOURCES} ${EDITOR_PDA_SOURCES} ${MOCSrcs} ${UISrcs})
 	
 	# make sure precompiled header is created before executable is compiled
 	add_dependencies(RBDoom3BFG precomp_header_rbdoom3bfg)
@@ -1565,6 +1627,7 @@ else()
 			${SDLx_LIBRARY}
 			${OPENAL_LIBRARY}
 			${FFMPEG_LIBRARIES}
+			${QT_LIBRARIES}
             ${ZLIB_LIBRARY}
             ${PNG_LIBRARY}
             ${JPEG_LIBRARY}

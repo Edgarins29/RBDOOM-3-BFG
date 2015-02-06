@@ -48,7 +48,7 @@ enum utf8Encoding_t
 	UTF8_INVALID,			// has values > 127 but isn't valid UTF8
 	UTF8_INVALID_BOM		// has a byte-order-marker at the beginning, but isn't valuid UTF8 -- it's messed up
 };
-
+/* EL : disable to allow compiling with Qt libraries
 // these library functions should not be used for cross platform compatibility
 #define strcmp			idStr::Cmp		// use_idStr_Cmp
 #define strncmp			use_idStr_Cmpn
@@ -82,6 +82,8 @@ enum utf8Encoding_t
 #define strnicmp		use_idStr_Icmpn
 #define _strnicmp		use_idStr_Icmpn
 #define _memicmp		use_idStr_Icmpn
+
+*/
 
 class idVec4;
 
